@@ -1,0 +1,16 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 50px;
+}
+
+.button {
+  background-color: rgb(92, 43, 171);
+  color: white;
+  width: 250px;
+  height: 40px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}

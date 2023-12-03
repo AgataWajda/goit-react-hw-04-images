@@ -1,0 +1,7 @@
+.image {
+  width: 450px;
+  max-height: 300px;
+  object-fit: cover;
+  margin-bottom: 50px;
+  border-radius: 5px;
+}
