@@ -27,7 +27,6 @@ export class App extends Component {
   };
 
   fetchData(querry) {
-    let items;
     this.setState(() => ({
       querry: querry,
       isLoading: true,
@@ -58,8 +57,6 @@ export class App extends Component {
   }
 
   getMoreData() {
-    let items;
-
     this.setState({ pageToLoad: this.state.pageToLoad + 1 });
 
     getItems(this.state.querry, this.state.pageToLoad)
