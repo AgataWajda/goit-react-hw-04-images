@@ -6,6 +6,7 @@ export class Searchbar extends Component {
   handleSubmit = event => {
     const form = event.currentTarget;
     const input = form.elements.input.value;
+
     event.preventDefault();
     this.props.handleSearch(input);
   };

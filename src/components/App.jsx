@@ -8,12 +8,6 @@ import { Button } from './Button/Button';
 import { Modal } from './Modal/Modal';
 
 export class App extends Component {
-  constructor(props) {
-    super(props);
-    this.fetchData = this.fetchData.bind(this);
-    this.getMoreData = this.getMoreData.bind(this);
-  }
-
   state = {
     galleryItems: [],
     isLoading: false,
@@ -26,54 +20,45 @@ export class App extends Component {
     tags: '',
   };
 
-  fetchData(querry) {
-    this.setState(() => ({
-      querry: querry,
-      isLoading: true,
-      pageToLoad: 1,
-    }));
+  componentDidUpdate(prevProps, prevState) {
+    const { querry, pageToLoad } = this.state;
 
-    getItems(querry)
-      .then(response => {
-        if (response.data.totalHits > 12) {
-          this.setState({ loadMore: true });
-        } else {
-          this.setState({ loadMore: false });
-        }
-        return response.data.hits;
-      })
-      .then(items => {
-        this.setState(() => ({
-          galleryItems: items,
-          isLoading: false,
-          pageToLoad: this.state.pageToLoad + 1,
-        }));
-      })
-
-      .catch(err => {
-        this.setState({ errorMsg: err.message });
-        console.log(err);
-      });
-  }
-
-  getMoreData() {
-    this.setState({ pageToLoad: this.state.pageToLoad + 1 });
-
-    getItems(this.state.querry, this.state.pageToLoad)
-      .then(response => {
-        if (response.data.totalHits > 12 * this.state.pageToLoad) {
-          this.setState({ loadMore: true });
-        } else {
-          this.setState({ loadMore: false });
-        }
-        return response.data.hits;
-      })
-      .then(items =>
-        this.setState({
-          galleryItems: this.state.galleryItems.concat(items),
+    if (
+      this.state.querry !== prevState.querry ||
+      this.state.pageToLoad !== prevState.pageToLoad
+    ) {
+      this.setState({ isLoading: true });
+      getItems(querry, pageToLoad)
+        .then(response => {
+          if (response.data.totalHits > 12 * pageToLoad) {
+            this.setState({ loadMore: true });
+          } else {
+            this.setState({ loadMore: false });
+          }
+          return response.data.hits;
         })
-      );
+        .then(items => {
+          this.state.pageToLoad === prevState.pageToLoad
+            ? this.setState({ galleryItems: items })
+            : this.setState({
+                galleryItems: this.state.galleryItems.concat(...items),
+              });
+
+          this.setState({ isLoading: false });
+        })
+        .catch(error => {
+          this.setState({ errorMsg: error });
+        });
+    }
   }
+
+  fetchData = querry => {
+    this.setState({ querry: querry, page: 1, isLoading: true });
+  };
+
+  getMoreData = () => {
+    this.setState({ pageToLoad: this.state.pageToLoad + 1 });
+  };
 
   openModal = (image, tags) => {
     this.setState(() => ({
