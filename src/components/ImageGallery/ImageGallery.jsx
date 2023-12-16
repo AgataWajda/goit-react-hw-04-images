@@ -5,10 +5,11 @@ import PropTypes from 'prop-types';
 export const ImageGallery = ({ gallery, showModal }) => {
   return (
     <ul className={css.gallery}>
-      {gallery.map(item => {
+      {gallery.map((item, index) => {
         return (
           <ImageGalleryItem
             item={item}
+            key={index}
             showModal={showModal}
           ></ImageGalleryItem>
         );

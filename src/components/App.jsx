@@ -34,7 +34,7 @@ export const App = () => {
         .then(items => {
           pageToLoad === 1
             ? setGalleryItems(items)
-            : setGalleryItems(galleryItems.concat(...items));
+            : setGalleryItems(galleryItems => [...galleryItems, ...items]);
 
           setIsLoading(false);
           setPrevPage(pageToLoad);
@@ -73,7 +73,7 @@ export const App = () => {
     <div>
       <Searchbar handleSearch={fetchData}></Searchbar>
       {isLoading && <Loader />}
-      {!isLoading && !errorMsg && (
+      {!errorMsg && (
         <ImageGallery
           gallery={galleryItems}
           showModal={openModal}
