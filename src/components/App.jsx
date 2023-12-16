@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Searchbar } from './Searchbar/Searchbar';
 import getItems from '../services/pixabyAPI';
@@ -7,99 +7,80 @@ import { Loader } from './Loader/Loader';
 import { Button } from './Button/Button';
 import { Modal } from './Modal/Modal';
 
-export class App extends Component {
-  state = {
-    galleryItems: [],
-    isLoading: false,
-    errorMsg: '',
-    loadMore: false,
-    pageToLoad: 1,
-    querry: '',
-    showModal: false,
-    image: '',
-    tags: '',
-  };
+export const App = () => {
+  const [galleryItems, setGalleryItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [loadMore, setLoadMore] = useState(false);
+  const [pageToLoad, setPageToLoad] = useState(1);
+  const [querry, setQuerry] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [image, setImage] = useState('');
+  const [tags, setTags] = useState('');
+  const [prevPage, setPrevPage] = useState();
 
-  componentDidUpdate(prevProps, prevState) {
-    const { querry, pageToLoad } = this.state;
-
-    if (
-      this.state.querry !== prevState.querry ||
-      this.state.pageToLoad !== prevState.pageToLoad
-    ) {
-      this.setState({ isLoading: true });
+  useEffect(() => {
+    if (querry !== '' && prevPage !== pageToLoad) {
+      setIsLoading(true);
       getItems(querry, pageToLoad)
         .then(response => {
           if (response.data.totalHits > 12 * pageToLoad) {
-            this.setState({ loadMore: true });
+            setLoadMore(true);
           } else {
-            this.setState({ loadMore: false });
+            setLoadMore(false);
           }
           return response.data.hits;
         })
         .then(items => {
-          this.state.pageToLoad === prevState.pageToLoad
-            ? this.setState({ galleryItems: items })
-            : this.setState({
-                galleryItems: this.state.galleryItems.concat(...items),
-              });
+          pageToLoad === 1
+            ? setGalleryItems(items)
+            : setGalleryItems(galleryItems.concat(...items));
 
-          this.setState({ isLoading: false });
+          setIsLoading(false);
+          setPrevPage(pageToLoad);
         })
         .catch(error => {
-          this.setState({ errorMsg: error });
+          setErrorMsg(error);
         });
     }
-  }
+  }, [galleryItems, pageToLoad, querry, prevPage]);
 
-  fetchData = querry => {
-    this.setState({ querry: querry, page: 1, isLoading: true });
+  const fetchData = newQuerry => {
+    if (newQuerry !== querry) {
+      setPageToLoad(1);
+      setQuerry(newQuerry);
+      setPrevPage(0);
+
+      setIsLoading(true);
+    }
   };
 
-  getMoreData = () => {
-    this.setState({ pageToLoad: this.state.pageToLoad + 1 });
+  const getMoreData = () => {
+    setPageToLoad(pageToLoad => pageToLoad + 1);
   };
 
-  openModal = (image, tags) => {
-    this.setState(() => ({
-      image: image,
-      tags: tags,
-      showModal: true,
-    }));
+  const openModal = (image, tags) => {
+    setImage(image);
+    setTags(tags);
+    setShowModal(true);
   };
 
-  closeModal = () => {
-    this.setState({ showModal: false });
+  const closeModal = () => {
+    setShowModal(false);
   };
 
-  render() {
-    const {
-      isLoading,
-      errorMsg,
-      galleryItems,
-      loadMore,
-      showModal,
-      tags,
-      image,
-    } = this.state;
-
-    return (
-      <div>
-        <Searchbar handleSearch={this.fetchData}></Searchbar>
-        {isLoading && <Loader />}
-        {!isLoading && !errorMsg && (
-          <ImageGallery
-            gallery={galleryItems}
-            showModal={this.openModal}
-          ></ImageGallery>
-        )}
-        {loadMore && !isLoading && (
-          <Button loadMore={this.getMoreData}></Button>
-        )}
-        {showModal && (
-          <Modal alt={tags} image={image} exit={this.closeModal}></Modal>
-        )}
-      </div>
-    );
-  }
-}
+  return (
+    <div>
+      <Searchbar handleSearch={fetchData}></Searchbar>
+      {isLoading && <Loader />}
+      {!isLoading && !errorMsg && (
+        <ImageGallery
+          gallery={galleryItems}
+          showModal={openModal}
+        ></ImageGallery>
+      )}
+      {loadMore && !isLoading && <Button loadMore={getMoreData}></Button>}
+      {showModal && <Modal alt={tags} image={image} exit={closeModal}></Modal>}
+    </div>
+  );
+};
